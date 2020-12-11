@@ -48,7 +48,7 @@ fn evaluate_point(iter: i32, a: f64, b: f64) -> i32 {
 
 fn generate_fractal(width: usize, upper_left: Complex<f64>, pixels: &mut [i16], max_iterations: i32, dw: f64, dh: f64) {
     let bands: Vec<(usize, &mut [i16])> = pixels.chunks_mut(width).enumerate().collect();
-    bands.into_par_iter().weight_max().for_each(|(i, band)| {
+    bands.into_par_iter().for_each(|(i, band)| {
         let a = upper_left.im - dh * i as f64;
         for col in 0..width {
             let result = evaluate_point(max_iterations, a, upper_left.re + dw * col as f64);
