@@ -1,9 +1,9 @@
 use gdk::prelude::*;
-use gdk::WindowTypeHint;
+use gdk::{WindowTypeHint};
 use gdk_pixbuf::{Colorspace, Pixbuf};
 use gio::prelude::*;
 use glib::idle_add_local;
-use gtk::{Application, ApplicationWindow, Image};
+use gtk::{Application, ApplicationWindow, Image, WindowPosition};
 use gtk::prelude::*;
 use num::Complex;
 use palette::{Gradient, LinSrgb};
@@ -106,7 +106,7 @@ fn main() {
         window.set_default_size(WIDTH, HEIGHT);
         window.set_resizable(false);
         window.set_type_hint(WindowTypeHint::Dialog);
-        window.move_((gdk::Screen::width() - WIDTH) / 2, (gdk::Screen::height() - HEIGHT) / 2);
+        window.set_position(WindowPosition::CenterAlways);
 
         let pix = Pixbuf::new(Colorspace::Rgb, false, 8, WIDTH, HEIGHT).expect("failed to create pixel buffer");
         let img = Image::from_pixbuf(Option::Some(&pix));
