@@ -1,5 +1,5 @@
+use gdk::WindowTypeHint;
 use gdk::prelude::*;
-use gdk::{WindowTypeHint};
 use gdk_pixbuf::{Colorspace, Pixbuf};
 use gio::prelude::*;
 use glib::idle_add_local;
@@ -32,12 +32,12 @@ fn generate_colors() -> Vec<Color> {
 }
 
 fn evaluate_point(iter: i32, a: f64, b: f64) -> i32 {
-    let mut x = 0.0;
-    let mut y = 0.0;
-    let mut i = 0;
+    let mut x: f64 = 0.0;
+    let mut y: f64 = 0.0;
+    let mut i: i32 = 0;
     while i < iter {
-        let z = x * x;
-        let w = y * y;
+        let z: f64 = x * x;
+        let w: f64 = y * y;
         if z + w >= 4.0 { return i; }
         x = 2.0 * x * y + a;
         y = w - z + b;
@@ -49,19 +49,19 @@ fn evaluate_point(iter: i32, a: f64, b: f64) -> i32 {
 fn generate_fractal(width: usize, upper_left: Complex<f64>, pixels: &mut [i16], max_iterations: i32, dw: f64, dh: f64) {
     let bands: Vec<(usize, &mut [i16])> = pixels.chunks_mut(width).enumerate().collect();
     bands.into_par_iter().for_each(|(i, band)| {
-        let a = upper_left.im - dh * i as f64;
+        let a: f64 = upper_left.im - dh * i as f64;
         for col in 0..width {
-            let result = evaluate_point(max_iterations, a, upper_left.re + dw * col as f64);
+            let result: i32 = evaluate_point(max_iterations, a, upper_left.re + dw * col as f64);
             band[col] = if result < max_iterations { (result & 255) as i16 } else { -1 };
         }
     });
 }
 
 unsafe fn update_pixels(pix_buf: &Pixbuf, colors: &Vec<Color>, pixels: &[i16]) {
-    let dest = pix_buf.get_pixels();
+    let dest: &mut [u8] = pix_buf.get_pixels();
     for mem in 0..pixels.len() {
-        let index = pixels[mem];
-        let color = if index < 0 { &BLACK } else { &colors[index as usize] };
+        let index: i16 = pixels[mem];
+        let color: &Color = if index < 0 { &BLACK } else { &colors[index as usize] };
         dest[mem * 3 + 0] = color.red;
         dest[mem * 3 + 1] = color.grn;
         dest[mem * 3 + 2] = color.blu;
@@ -69,12 +69,12 @@ unsafe fn update_pixels(pix_buf: &Pixbuf, colors: &Vec<Color>, pixels: &[i16]) {
 }
 
 fn fractal_zoom(pix_buf: Pixbuf, image: Image, window: ApplicationWindow) {
-    let colors = generate_colors();
-    let size = (WIDTH as usize, HEIGHT as usize);
+    let colors: Vec<Color> = generate_colors();
+    let (width, height) = (WIDTH as usize, HEIGHT as usize);
     let mut minimum = Complex { re: -2.25, im: -1.0 };
     let mut maximum = Complex { re: 0.75, im: 1.0 };
     let mut pixels: [i16; (WIDTH * HEIGHT) as usize] = [0; (WIDTH * HEIGHT) as usize];
-    let mut max_iterations = 1;
+    let mut max_iterations: i32 = 1;
 
     idle_add_local(move || unsafe {
         minimum.re += (-0.743643887037151 - minimum.re) / 50.0;
@@ -83,9 +83,9 @@ fn fractal_zoom(pix_buf: Pixbuf, image: Image, window: ApplicationWindow) {
         maximum.im += (0.131825904205330 - maximum.im) / 50.0;
         max_iterations += 2;
 
-        let dw = (maximum.re - minimum.re) / size.0 as f64;
-        let dh = (minimum.im - maximum.im) / size.1 as f64;
-        generate_fractal(size.0, minimum, &mut pixels, max_iterations, dw, dh);
+        let dw = (maximum.re - minimum.re) / width as f64;
+        let dh = (minimum.im - maximum.im) / height as f64;
+        generate_fractal(width, minimum, &mut pixels, max_iterations, dw, dh);
 
         update_pixels(&pix_buf, &colors, &pixels);
         image.set_from_pixbuf(Option::Some(&pix_buf));
@@ -95,21 +95,21 @@ fn fractal_zoom(pix_buf: Pixbuf, image: Image, window: ApplicationWindow) {
 }
 
 fn main() {
-    let application = Application::new(
+    let application: Application = Application::new(
         Some("com.zynaps.rust.mandelbrot-zoom"),
         Default::default()).expect("failed to initialize GTK application"
     );
 
     application.connect_activate(|app| {
-        let window = ApplicationWindow::new(app);
+        let window: ApplicationWindow = ApplicationWindow::new(app);
         window.set_title("Mandelbrot Zoom");
         window.set_default_size(WIDTH, HEIGHT);
         window.set_resizable(false);
         window.set_type_hint(WindowTypeHint::Dialog);
         window.set_position(WindowPosition::CenterAlways);
 
-        let pix = Pixbuf::new(Colorspace::Rgb, false, 8, WIDTH, HEIGHT).expect("failed to create pixel buffer");
-        let img = Image::from_pixbuf(Option::Some(&pix));
+        let pix: Pixbuf = Pixbuf::new(Colorspace::Rgb, false, 8, WIDTH, HEIGHT).expect("failed to create pixel buffer");
+        let img: Image = Image::from_pixbuf(Option::Some(&pix));
 
         window.add(&img);
         window.show_all();
